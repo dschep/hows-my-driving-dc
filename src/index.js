@@ -1,21 +1,43 @@
+const {readFileSync} = require('fs');
 const Tesseract = require('tesseract.js');
+const middy = require('middy');
+const {ssm} = require('middy/middlewares');
+const Twitter = require('twitter');
+
 
 const setup = require('./starter-kit/setup');
 const screenshotDOMElement = require('./screenshotDOMElement.js');
 
-exports.handler = async (event, context, callback) => {
+exports.handler = middy(async (event, context) => {
   // For keeping the browser launch
   context.callbackWaitsForEmptyEventLoop = false;
   const browser = await setup.getBrowser();
+  console.log({
+    consumer_key: process.env.CONSUMER_KEY,
+    consumer_secret: process.env.CONSUMER_SECRET,
+    access_token_key: process.env.ACCESS_TOKEN,
+    access_token_secret: process.env.ACCESS_TOKEN_SECRET,
+  });
+  const client = new Twitter({
+    consumer_key: process.env.CONSUMER_KEY,
+    consumer_secret: process.env.CONSUMER_SECRET,
+    access_token_key: process.env.ACCESS_TOKEN,
+    access_token_secret: process.env.ACCESS_TOKEN_SECRET,
+  });
   console.log(event);
-  exports.run(browser, event.state, event.number).then(
-    (result) => callback(null, result)
-  ).catch(
-    (err) => callback(err)
-  );
-};
+  return exports.run(browser, client, event.state, event.number);
+});
+exports.handler.use(ssm({
+  cache: true,
+  names: {
+    CONSUMER_KEY: '/howsmydriving/consumer_key',
+    CONSUMER_SECRET: '/howsmydriving/consumer_secret',
+    ACCESS_TOKEN: '/howsmydriving/access_token',
+    ACCESS_TOKEN_SECRET: '/howsmydriving/access_token_secret',
+  },
+}));
 
-exports.run = async (browser, state = 'DC', number = 'ey9285') => {
+exports.run = async (browser, client, state = 'DC', number = 'ey9285') => {
   const page = await browser.newPage();
   await page.setViewport({height: 768, width: 1024});
   await page.goto('https://prodpci.etimspayments.com/pbw/include/dc_parking/input.jsp',
@@ -70,6 +92,41 @@ exports.run = async (browser, state = 'DC', number = 'ey9285') => {
     padding: 4,
   });
   console.log('screenshoted tickets!');
+
+  if (client) {
+    console.log('lets tweet!');
+    const data = readFileSync('/tmp/tickets.png');
+    console.log('loaded image');
+    return new Promise((resolve, reject) => client.post(
+      'media/upload',
+      {media: data},
+      function(error, media, response) {
+        if (!error) {
+          // If successful, a media object will be returned.
+          console.log(media);
+
+          // Lets tweet it
+          const status = {
+            status: `${state} ${number} has outstanding tickets:`,
+            media_ids: media.media_id_string,
+          };
+
+          client.post('statuses/update', status,
+                      function(error, tweet, response) {
+                        if (!error) {
+                          console.log(tweet);
+                          resolve();
+                        } else {
+                          console.log('problem tweeting', error);
+                          reject(error);
+                        }
+                      });
+        } else {
+          console.log('problem uploading', error);
+          reject(error);
+        }
+      }));
+  }
 
   return captcha;
 };
