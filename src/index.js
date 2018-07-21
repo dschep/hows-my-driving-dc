@@ -1,59 +1,75 @@
+const Tesseract = require('tesseract.js');
+
 const setup = require('./starter-kit/setup');
+const screenshotDOMElement = require('./screenshotDOMElement.js');
 
 exports.handler = async (event, context, callback) => {
   // For keeping the browser launch
   context.callbackWaitsForEmptyEventLoop = false;
   const browser = await setup.getBrowser();
-  exports.run(browser).then(
+  console.log(event);
+  exports.run(browser, event.state, event.number).then(
     (result) => callback(null, result)
   ).catch(
     (err) => callback(err)
   );
 };
 
-exports.run = async (browser) => {
-  // implement here
-  // this is sample
+exports.run = async (browser, state = 'DC', number = 'ey9285') => {
   const page = await browser.newPage();
-  await page.goto('https://www.google.co.jp',
+  await page.setViewport({height: 768, width: 1024});
+  await page.goto('https://prodpci.etimspayments.com/pbw/include/dc_parking/input.jsp',
    {waitUntil: ['domcontentloaded', 'networkidle0']}
   );
-  console.log((await page.content()).slice(0, 500));
 
-  await page.type('#lst-ib', 'aaaaa');
+  console.log('loaded');
+
+  // Enter license plate number
+  await page.type('[name=plateNumber]', number);
+  console.log('typed number');
+
+  // Set state
+  await page.evaluate((state) => {
+    document.querySelector('[name=statePlate]').value = state;
+  }, state);
+  console.log('set state');
+
+  // solve the captcha >:D
+  await screenshotDOMElement(page, {
+    path: '/tmp/captcha.png',
+    selector: '#captcha',
+    padding: 4,
+  });
+  console.log('screened captcha');
+  const {text} = await Tesseract.recognize('/tmp/captcha.png');
+  console.log('solved captcha');
+  const captcha = text.replace(/\D/g, '');
+  await page.type('[name=captchaSText]', captcha);
+  console.log('typed captcha');
+
   // avoid to timeout waitForNavigation() after click()
   await Promise.all([
-    // avoid to
-    // 'Cannot find context with specified id undefined' for localStorage
     page.waitForNavigation(),
-    page.click('[name=btnK]'),
+    page.keyboard.press('Enter'),
   ]);
+  console.log('submited form');
 
-/* screenshot
-  await page.screenshot({path: '/tmp/screenshot.png'});
-  const aws = require('aws-sdk');
-  const s3 = new aws.S3({apiVersion: '2006-03-01'});
-  const fs = require('fs');
-  const screenshot = await new Promise((resolve, reject) => {
-    fs.readFile('/tmp/screenshot.png', (err, data) => {
-      if (err) return reject(err);
-      resolve(data);
-    });
+  const error = await page.evaluate(
+    () => document.querySelector('.error') &&
+      document.querySelector('.error').textContent);
+  if (error && error.match && error.match(/Please enter the characters/)) {
+    return 'captcha error';
+  } else if (error) {
+    return error;
+  }
+  console.log('checked errors');
+
+  await screenshotDOMElement(page, {
+    path: '/tmp/tickets.png',
+    selector: '.reg>table',
+    padding: 4,
   });
-  await s3.putObject({
-    Bucket: '<bucket name>',
-    Key: 'screenshot.png',
-    Body: screenshot,
-  }).promise();
-*/
+  console.log('screenshoted tickets!');
 
-  // cookie and localStorage
-  await page.setCookie({name: 'name', value: 'cookieValue'});
-  console.log(await page.cookies());
-  console.log(await page.evaluate(() => {
-    localStorage.setItem('name', 'localStorageValue');
-    return localStorage.getItem('name');
-  }));
-  await page.close();
-  return 'done';
+  return captcha;
 };
