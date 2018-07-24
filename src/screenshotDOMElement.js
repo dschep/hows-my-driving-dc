@@ -16,6 +16,7 @@ async function screenshotDOMElement(page, opts = {}) {
     }
 
     const rect = await page.evaluate((selector) => {
+        // eslint-disable-next-line no-undef
         const element = document.querySelector(selector);
         if (!element) {
             return null;

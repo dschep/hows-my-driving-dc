@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 const {readFileSync} = require('fs');
 const Tesseract = require('tesseract.js');
 
@@ -66,7 +67,7 @@ module.exports = async (browser, client, state = 'DC', number = 'ey9285') => {
     return new Promise((resolve, reject) => client.post(
       'media/upload',
       {media: data},
-      function(error, media, response) {
+      function(error, media) {
         if (!error) {
           // If successful, a media object will be returned.
           console.log(media);
@@ -78,7 +79,7 @@ module.exports = async (browser, client, state = 'DC', number = 'ey9285') => {
           };
 
           client.post('statuses/update', status,
-                      function(error, tweet, response) {
+                      function(error, tweet) {
                         if (!error) {
                           console.log(tweet);
                           resolve();
@@ -96,3 +97,4 @@ module.exports = async (browser, client, state = 'DC', number = 'ey9285') => {
 
   return captcha;
 };
+/* eslint-disable no-enable */

@@ -6,9 +6,10 @@
     "package": "npm run package-prepare && cp chrome/headless_shell.tar.gz dist && cp eng.traineddata dist && cd dist && zip -rq ../package.zip .",
     "package-nochrome": "npm run package-prepare && cd dist && zip -rq ../package.zip .",
     "package-prepare": "npm run lint && npm run babel && cp -r package.json dist && cd dist && PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1 npm install --production",
-    "babel": "rm -rf dist && mkdir dist && ./node_modules/.bin/babel src --out-dir dist",
+    "babel": "rm -rf dist && mkdir dist && babel src --out-dir dist",
     "local": "npm run babel && cp eng.traineddata dist && cp -r node_modules dist && node dist/local.js",
-    "lint": "./node_modules/.bin/eslint src"
+    "lint": "eslint src && prettier -l src/**/*.js || (echo need formatting ; exit 1)",
+    "format": "prettier --write index.js src/**/*.js"
   },
   "dependencies": {
     "middy": "^0.15.10",
@@ -22,7 +23,33 @@
     "babel-cli": "^6.26.0",
     "babel-preset-env": "^1.6.0",
     "eslint": "^4.6.1",
-    "eslint-config-google": "^0.9.1",
-    "serverless-hooks-plugin": "^1.1.0"
+    "serverless-hooks-plugin": "^1.1.0",
+    "prettier": "*"
+  },
+  "eslintConfig": {
+    "extends": "eslint:recommended",
+    "env": {
+      "node": true
+    },
+    "parserOptions": {
+      "ecmaVersion": 8
+    },
+    "rules": {
+      "no-console": [
+        "error",
+        {
+          "allow": [
+            "log",
+            "warn",
+            "error"
+          ]
+        }
+      ]
+    }
+  },
+  "prettier": {
+    "semi": true,
+    "singleQuote": true,
+    "parser": "babylon"
   }
 }
