@@ -1,5 +1,5 @@
-const index = require('../index');
-const config = require('./config');
+const lookupPlate = require('./lookupPlate');
+const config = require('./puppeteer/config');
 const puppeteer = require('puppeteer');
 
 (async () => {
@@ -9,7 +9,7 @@ const puppeteer = require('puppeteer');
         dumpio: !!config.DEBUG,
         // use chrome installed by puppeteer
     });
-    await index.run(browser)
+    await lookupPlate(browser)
     .then((result) => console.log(result))
     .catch((err) => console.error(err));
     await browser.close();

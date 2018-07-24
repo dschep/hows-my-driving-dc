@@ -9,7 +9,7 @@ const crypto = require('crypto');
  * @param  {String} consumerSecret  the API consumer secret
  * @return {String}
  */
-module.exports.get_challenge_response = (crcToken, consumerSecret) => crypto
+module.exports = (crcToken, consumerSecret) => crypto
   .createHmac('sha256', consumerSecret)
   .update(crcToken)
   .digest('base64');

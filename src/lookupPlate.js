@@ -1,43 +1,9 @@
 const {readFileSync} = require('fs');
 const Tesseract = require('tesseract.js');
-const middy = require('middy');
-const {ssm} = require('middy/middlewares');
-const Twitter = require('twitter');
 
-
-const setup = require('./starter-kit/setup');
 const screenshotDOMElement = require('./screenshotDOMElement.js');
 
-exports.handler = middy(async (event, context) => {
-  // For keeping the browser launch
-  context.callbackWaitsForEmptyEventLoop = false;
-  const browser = await setup.getBrowser();
-  console.log({
-    consumer_key: process.env.CONSUMER_KEY,
-    consumer_secret: process.env.CONSUMER_SECRET,
-    access_token_key: process.env.ACCESS_TOKEN,
-    access_token_secret: process.env.ACCESS_TOKEN_SECRET,
-  });
-  const client = new Twitter({
-    consumer_key: process.env.CONSUMER_KEY,
-    consumer_secret: process.env.CONSUMER_SECRET,
-    access_token_key: process.env.ACCESS_TOKEN,
-    access_token_secret: process.env.ACCESS_TOKEN_SECRET,
-  });
-  console.log(event);
-  return exports.run(browser, client, event.state, event.number);
-});
-exports.handler.use(ssm({
-  cache: true,
-  names: {
-    CONSUMER_KEY: '/howsmydriving/consumer_key',
-    CONSUMER_SECRET: '/howsmydriving/consumer_secret',
-    ACCESS_TOKEN: '/howsmydriving/access_token',
-    ACCESS_TOKEN_SECRET: '/howsmydriving/access_token_secret',
-  },
-}));
-
-exports.run = async (browser, client, state = 'DC', number = 'ey9285') => {
+module.exports = async (browser, client, state = 'DC', number = 'ey9285') => {
   const page = await browser.newPage();
   await page.setViewport({height: 768, width: 1024});
   await page.goto('https://prodpci.etimspayments.com/pbw/include/dc_parking/input.jsp',

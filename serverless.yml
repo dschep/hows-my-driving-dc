@@ -15,10 +15,16 @@ provider:
       Resource: arn:aws:kms:us-east-1:704903784842:key/11b9fec1-3ab3-42d4-87f7-25b78c45ea10
 
 functions:
-  test-function:
-    handler: index.handler
+  test:
+    handler: handlers.test
     environment:
       DEBUG: 0
+  crc:
+    handler: handlers.crc
+    events:
+      - http:
+          path: webhook
+          method: get
 
 package:
   artifact: ./package.zip
