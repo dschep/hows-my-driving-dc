@@ -40,11 +40,14 @@ module.exports = async (browser, state = 'DC', number = 'ey9285') => {
   await Promise.all([page.waitForNavigation(), page.keyboard.press('Enter')]);
   console.log('submited form');
 
-  const error = await page.evaluate(
-    () =>
-      document.querySelector('.error') &&
-      document.querySelector('.error').textContent
-  );
+  const error = await page.evaluate(() => {
+    if (document.querySelector('.reg>table') === null) {
+      return (
+        document.querySelector('.error') &&
+        document.querySelector('.error').textContent
+      );
+    }
+  });
   if (error && error.match && error.match(/Please enter the characters/)) {
     return 'captcha error';
   } else if (error) {
