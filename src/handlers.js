@@ -137,11 +137,10 @@ module.exports.webhook = middy(async (event, context) => {
   const [, state, number] = event.body.tweet_create_events[0].text.match(
     /\b([a-zA-Z]{2}):([a-zA-Z0-9]+)\b/
   );
-  const ticketsOrError = await lookupPlate(
-    browser,
-    state.toUpperCase(),
-    number
-  );
+  let ticketsOrError = 'captcha error';
+  for (let i = 0; i < 5 && ticketsOrError === 'captcha error'; i++) {
+    ticketsOrError = await lookupPlate(browser, state.toUpperCase(), number);
+  }
   console.log('lets tweet!');
   const status = {
     in_reply_to_status_id: event.body.tweet_create_events[0].id_str,
