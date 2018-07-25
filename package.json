@@ -9,7 +9,7 @@
     "babel": "rm -rf dist && mkdir dist && babel src --out-dir dist",
     "local": "npm run babel && cp eng.traineddata dist && cp -r node_modules dist && node dist/local.js",
     "lint": "eslint src && prettier -l src/**/*.js || (echo need formatting ; exit 1)",
-    "format": "prettier --write index.js src/**/*.js"
+    "format": "prettier --write src/*.js src/*/*.js"
   },
   "dependencies": {
     "middy": "^0.15.10",
