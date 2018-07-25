@@ -21,12 +21,20 @@ functions:
       DEBUG: 0
   register:
     handler: handlers.register
+  subscribe:
+    handler: handlers.subscribe
   crc:
     handler: handlers.crc
     events:
       - http:
           path: webhook.json
           method: get
+  webhook:
+    handler: handlers.webhook
+    events:
+      - http:
+          path: webhook.json
+          method: post
 
 package:
   artifact: ./package.zip
