@@ -54,3 +54,32 @@ module.exports.crc.use(ssm({
     CONSUMER_SECRET: '/howsmydriving/consumer_secret',
   },
 }));
+
+module.exports.register = middy(async (event) => {
+  const client = new Twitter({
+    consumer_key: process.env.CONSUMER_KEY,
+    consumer_secret: process.env.CONSUMER_SECRET,
+    access_token_key: process.env.ACCESS_TOKEN,
+    access_token_secret: process.env.ACCESS_TOKEN_SECRET,
+  });
+  // eslint-disable-next-line no-undef
+  return new Promise((resolve, reject) => client.post(
+    `/account_activity/all/dev/webhooks.json?url=${encodeURIComponent(event.webhook)}`,
+    (error, data) => {
+      if (error) {
+        reject(JSON.stringify(error));
+      } else {
+        resolve(data);
+      }
+    }
+  ));
+});
+module.exports.register.use(ssm({
+  cache: true,
+  names: {
+    CONSUMER_KEY: '/howsmydriving/consumer_key',
+    CONSUMER_SECRET: '/howsmydriving/consumer_secret',
+    ACCESS_TOKEN: '/howsmydriving/access_token',
+    ACCESS_TOKEN_SECRET: '/howsmydriving/access_token_secret',
+  },
+}));

@@ -19,6 +19,8 @@ functions:
     handler: handlers.test
     environment:
       DEBUG: 0
+  register:
+    handler: handlers.register
   crc:
     handler: handlers.crc
     events:
