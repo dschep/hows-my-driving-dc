@@ -38,10 +38,13 @@ module.exports.test.use(ssm({
 
 module.exports.crc = middy(async (event) => {
   console.log(event);
+  if (!event.queryStringParameters || !event.queryStringParameters.crc_token) {
+    return {statusCode: 400};
+  }
   const responseToken = crc(
     event.queryStringParameters.crc_token, process.env.CONSUMER_SECRET);
   return {
-    response_token: `sha256=${responseToken}`,
+    body: JSON.stringify({response_token: `sha256=${responseToken}`}),
   };
 });
 

@@ -23,7 +23,7 @@ functions:
     handler: handlers.crc
     events:
       - http:
-          path: webhook
+          path: webhook.json
           method: get
 
 package:
