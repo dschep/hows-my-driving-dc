@@ -159,7 +159,7 @@ module.exports.webhook = middy(async (event, context) => {
   if (result.path) {
     const data = readFileSync(result.path);
     console.log('loaded image');
-    status.status += `${state} ${number} has outstanding tickets:`;
+    status.status += `${state}:${number} has outstanding tickets:`;
     // eslint-disable-next-line no-undef
     status.media_ids = await new Promise((resolve, reject) =>
       client.post('media/upload', { media: data }, (error, media) => {
