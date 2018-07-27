@@ -135,6 +135,13 @@ module.exports.webhook = middy(async (event, context) => {
     return;
   }
   console.log(event.body.tweet_create_events);
+  if (
+    event.body.tweet_create_events[0].user.screen_name.toLowerCase() ===
+    'howsmydrivingdc'
+  ) {
+    console.log('ignore own tweet');
+    return;
+  }
   let state, number;
   try {
     [, state, number] = event.body.tweet_create_events[0].text.match(
