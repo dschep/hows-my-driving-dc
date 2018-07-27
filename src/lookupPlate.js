@@ -55,6 +55,12 @@ module.exports = async (browser, state = 'DC', number = 'ey9285') => {
   }
   console.log('checked errors');
 
+  const total = await page.evaluate(() =>
+    Number(
+      document.querySelector('input[name=totalAmount]').value.replace('$', '')
+    )
+  );
+
   await screenshotDOMElement(page, {
     path: '/tmp/tickets.png',
     selector: '.reg>table',
@@ -62,6 +68,6 @@ module.exports = async (browser, state = 'DC', number = 'ey9285') => {
   });
   console.log('screenshoted tickets!');
 
-  return { path: '/tmp/tickets.png' };
+  return { path: '/tmp/tickets.png', total };
 };
 /* eslint-disable no-enable */

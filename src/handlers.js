@@ -1,5 +1,6 @@
 const { readFileSync } = require('fs');
 
+const AWS = require('aws-sdk');
 const middy = require('middy');
 const { ssm, jsonBodyParser } = require('middy/middlewares');
 const Twitter = require('twitter');
@@ -7,6 +8,8 @@ const Twitter = require('twitter');
 const setup = require('./puppeteer/setup');
 const lookupPlate = require('./lookupPlate.js');
 const crc = require('./crc.js');
+
+const SSM = new AWS.SSM();
 
 module.exports.test = middy(async (event, context) => {
   // For keeping the browser launch
@@ -142,6 +145,10 @@ module.exports.webhook = middy(async (event, context) => {
     console.log('ignore own tweet');
     return;
   }
+  if (event.body.tweet_create_events[0].is_quote_status) {
+    console.log('ignore quote tweet');
+    return;
+  }
   let state, number;
   try {
     [, state, number] = event.body.tweet_create_events[0].text.match(
@@ -166,7 +173,9 @@ module.exports.webhook = middy(async (event, context) => {
   if (result.path) {
     const data = readFileSync(result.path);
     console.log('loaded image');
-    status.status += `${state}:${number} has outstanding tickets:`;
+    status.status += `${state}:${number} has $${
+      result.total
+    } in outstanding tickets:`;
     // eslint-disable-next-line no-undef
     status.media_ids = await new Promise((resolve, reject) =>
       client.post('media/upload', { media: data }, (error, media) => {
@@ -184,17 +193,52 @@ module.exports.webhook = middy(async (event, context) => {
     status.status += result.error;
   }
   // eslint-disable-next-line no-undef
-  return new Promise((resolve, reject) =>
+  const { id_str } = await new Promise((resolve, reject) =>
     client.post('statuses/update', status, (error, tweet) => {
       if (!error) {
         console.log(tweet);
-        resolve();
+        resolve(tweet);
       } else {
         console.log('problem tweeting', error);
         reject(error);
       }
     })
   );
+  const highScore = Number(
+    await SSM.getParameter({ Name: '/howsmydriving/high_score' })
+      .promise()
+      .catch(() => ({ Parameter: { Value: '0' } }))
+      .then(({ Parameter: { Value } }) => Value)
+  );
+  if (!result.error && result.total > highScore) {
+    const highScoreStatus = {
+      status: `🚨 @${
+        event.body.tweet_create_events[0].user.screen_name
+      } set a new high score with ${state}:${number}: $${
+        result.total
+      } in unpaid tickets! 🚨
+
+      https://twitter.com/HowsMyDrivingDC/status/${id_str}`
+    };
+    // eslint-disable-next-line no-undef
+    await new Promise((resolve, reject) =>
+      client.post('statuses/update', highScoreStatus, (error, tweet) => {
+        if (!error) {
+          console.log(tweet);
+          resolve(tweet);
+        } else {
+          console.log('problem tweeting', error);
+          reject(error);
+        }
+      })
+    );
+    await SSM.putParameter({
+      Name: '/howsmydriving/high_score',
+      Type: 'String',
+      Value: result.total.toString(),
+      Overwrite: true
+    }).promise();
+  }
 });
 module.exports.webhook.use(
   ssm({

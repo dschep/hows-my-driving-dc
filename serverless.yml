@@ -11,6 +11,12 @@ provider:
       Action: ssm:GetParameters
       Resource: arn:aws:ssm:us-east-1:704903784842:parameter/howsmydriving/*
     - Effect: Allow
+      Action: ssm:GetParameter
+      Resource: arn:aws:ssm:us-east-1:704903784842:parameter/howsmydriving/high_score
+    - Effect: Allow
+      Action: ssm:PutParameter
+      Resource: arn:aws:ssm:us-east-1:704903784842:parameter/howsmydriving/high_score
+    - Effect: Allow
       Action: kms:Decrypt
       Resource: arn:aws:kms:us-east-1:704903784842:key/11b9fec1-3ab3-42d4-87f7-25b78c45ea10
 
