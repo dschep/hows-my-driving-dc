@@ -144,17 +144,20 @@ module.exports.webhook = middy(async (event, context) => {
     console.log(e);
     return;
   }
-  let ticketsOrError = 'captcha error';
-  for (let i = 0; i < 5 && ticketsOrError === 'captcha error'; i++) {
-    ticketsOrError = await lookupPlate(browser, state.toUpperCase(), number);
+  let result;
+  for (let i = 0; i < 5; i++) {
+    result = await lookupPlate(browser, state.toUpperCase(), number);
+    if (result.error !== 'captcha error') {
+      break;
+    }
   }
   console.log('lets tweet!');
   const status = {
     in_reply_to_status_id: event.body.tweet_create_events[0].id_str,
     status: `@${event.body.tweet_create_events[0].user.screen_name} `
   };
-  if (ticketsOrError.startsWith('/')) {
-    const data = readFileSync('/tmp/tickets.png');
+  if (result.path) {
+    const data = readFileSync(result.path);
     console.log('loaded image');
     status.status += `${state} ${number} has outstanding tickets:`;
     // eslint-disable-next-line no-undef
@@ -170,8 +173,8 @@ module.exports.webhook = middy(async (event, context) => {
         }
       })
     );
-  } else {
-    status.status += ticketsOrError;
+  } else if (result.error) {
+    status.status += result.error;
   }
   // eslint-disable-next-line no-undef
   return new Promise((resolve, reject) =>

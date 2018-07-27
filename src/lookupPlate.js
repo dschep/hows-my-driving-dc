@@ -49,9 +49,9 @@ module.exports = async (browser, state = 'DC', number = 'ey9285') => {
     }
   });
   if (error && error.match && error.match(/Please enter the characters/)) {
-    return 'captcha error';
+    return { error: 'captcha error' };
   } else if (error) {
-    return error;
+    return { error };
   }
   console.log('checked errors');
 
@@ -62,6 +62,6 @@ module.exports = async (browser, state = 'DC', number = 'ey9285') => {
   });
   console.log('screenshoted tickets!');
 
-  return '/tmp/tickets.png';
+  return { path: '/tmp/tickets.png' };
 };
 /* eslint-disable no-enable */
