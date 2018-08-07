@@ -15,3 +15,7 @@ Bootstraped from https://github.com/sambaiz/puppeteer-lambda-starter-kit
 
 ## Screenshot
 ![](./screenshot.png)
+
+
+## Backstory?
+Curious how @howsmydrivingdc came to be? [Here's a short story in the form of twitter screenshots](https://github.com/dschep/hows-my-driving-dc/issues/4#issuecomment-407921395).
