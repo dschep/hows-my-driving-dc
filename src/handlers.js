@@ -145,7 +145,12 @@ module.exports.webhook = middy(async (event, context) => {
     console.log('ignore own tweet');
     return;
   }
-  if (event.body.tweet_create_events[0].is_quote_status) {
+  if (
+    event.body.tweet_create_events[0].is_quote_status &&
+    !event.body.tweet_create_events[0].text.includes(
+      event.body.tweet_create_events[0].quoted_status.text
+    )
+  ) {
     console.log('ignore quote tweet');
     return;
   }
