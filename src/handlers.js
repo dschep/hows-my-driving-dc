@@ -156,9 +156,10 @@ module.exports.webhook = middy(async (event, context) => {
   }
   let state, number;
   try {
-    [, state, number] = event.body.tweet_create_events[0].text.match(
-      /\b([a-zA-Z]{2}):([a-zA-Z0-9]+)\b/
-    );
+    const text = event.body.tweet_create_events[0].truncated
+      ? event.body.tweet_create_events[0].extended_tweet.full_text
+      : event.body.tweet_create_events[0].text;
+    [, state, number] = text.match(/\b([a-zA-Z]{2}):([a-zA-Z0-9]+)\b/);
   } catch (e) {
     console.log(e);
     return;
