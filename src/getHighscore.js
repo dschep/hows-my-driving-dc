@@ -11,20 +11,11 @@ module.exports = async function() {
   let max_id;
   while (pages < 10) {
     // eslint-disable-next-line no-undef
-    const ownTweets = await new Promise((resolve, reject) =>
-      client.get(
-        '/statuses/user_timeline.json',
-        { screen_name: 'howsmydrivingdc', count: 200, max_id },
-        (error, data) => {
-          if (!error) {
-            resolve(data);
-          } else {
-            console.log('getting own tweets', error);
-            reject(error);
-          }
-        }
-      )
-    );
+    const ownTweets = await client.get('/statuses/user_timeline.json', {
+      screen_name: 'howsmydrivingdc',
+      count: 200,
+      max_id
+    });
     for (const { text, id_str } of ownTweets) {
       const match = text.match(
         /set a new high score with [a-zA-Z]{2}:[a-zA-Z0-9]+: \$(\d+) in unpaid tickets/

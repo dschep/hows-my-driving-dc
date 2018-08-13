@@ -13,14 +13,8 @@ module.exports.test = middy(async (event, context) => {
   // For keeping the browser launch
   context.callbackWaitsForEmptyEventLoop = false;
   const browser = await setup.getBrowser();
-  const client = new Twitter({
-    consumer_key: process.env.CONSUMER_KEY,
-    consumer_secret: process.env.CONSUMER_SECRET,
-    access_token_key: process.env.ACCESS_TOKEN,
-    access_token_secret: process.env.ACCESS_TOKEN_SECRET
-  });
   console.log(event);
-  return lookupPlate(browser, client, event.state, event.number);
+  return lookupPlate(browser, event.state, event.number);
 });
 module.exports.test.use(
   ssm({
@@ -63,20 +57,10 @@ module.exports.register = middy(async event => {
     access_token_key: process.env.ACCESS_TOKEN,
     access_token_secret: process.env.ACCESS_TOKEN_SECRET
   });
-  // eslint-disable-next-line no-undef
-  return new Promise((resolve, reject) =>
-    client.post(
-      `/account_activity/all/dev/webhooks.json?url=${encodeURIComponent(
-        event.webhook
-      )}`,
-      (error, data) => {
-        if (error) {
-          reject(JSON.stringify(error));
-        } else {
-          resolve(data);
-        }
-      }
-    )
+  return client.post(
+    `/account_activity/all/dev/webhooks.json?url=${encodeURIComponent(
+      event.webhook
+    )}`
   );
 });
 module.exports.register.use(
@@ -97,19 +81,7 @@ module.exports.subscribe = middy(async (/*event*/) => {
     access_token_key: process.env.ACCESS_TOKEN,
     access_token_secret: process.env.ACCESS_TOKEN_SECRET
   });
-  // eslint-disable-next-line no-undef
-  return new Promise((resolve, reject) =>
-    client.post(
-      `/account_activity/all/dev/subscriptions.json`,
-      (error, data) => {
-        if (error) {
-          reject(JSON.stringify(error));
-        } else {
-          resolve(data);
-        }
-      }
-    )
-  );
+  return client.post(`/account_activity/all/dev/subscriptions.json`);
 });
 module.exports.subscribe.use(
   ssm({
@@ -180,34 +152,14 @@ module.exports.webhook = middy(async (event, context) => {
     status.status += `${state}:${number} has $${
       result.total
     } in outstanding tickets:`;
-    // eslint-disable-next-line no-undef
-    status.media_ids = await new Promise((resolve, reject) =>
-      client.post('media/upload', { media: data }, (error, media) => {
-        if (!error) {
-          // If successful, a media object will be returned.
-          console.log(media);
-          resolve(media.media_id_string);
-        } else {
-          console.log('problem uploading', error);
-          reject(error);
-        }
-      })
-    );
+    const { media_id_string } = await client.post('media/upload', {
+      media: data
+    });
+    status.media_ids = media_id_string;
   } else if (result.error) {
     status.status += result.error;
   }
-  // eslint-disable-next-line no-undef
-  const { id_str } = await new Promise((resolve, reject) =>
-    client.post('statuses/update', status, (error, tweet) => {
-      if (!error) {
-        console.log(tweet);
-        resolve(tweet);
-      } else {
-        console.log('problem tweeting', error);
-        reject(error);
-      }
-    })
-  );
+  const { id_str } = await client.post('statuses/update', status);
   const highScore = await getHighscore();
   if (!result.error && result.total > highScore) {
     const highScoreStatus = {
@@ -219,18 +171,7 @@ module.exports.webhook = middy(async (event, context) => {
 
       https://twitter.com/HowsMyDrivingDC/status/${id_str}`
     };
-    // eslint-disable-next-line no-undef
-    await new Promise((resolve, reject) =>
-      client.post('statuses/update', highScoreStatus, (error, tweet) => {
-        if (!error) {
-          console.log(tweet);
-          resolve(tweet);
-        } else {
-          console.log('problem tweeting', error);
-          reject(error);
-        }
-      })
-    );
+    await client.post('statuses/update', highScoreStatus);
   }
 });
 module.exports.webhook.use(
