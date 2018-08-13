@@ -1,6 +1,5 @@
 const { readFileSync } = require('fs');
 
-const AWS = require('aws-sdk');
 const middy = require('middy');
 const { ssm, jsonBodyParser } = require('middy/middlewares');
 const Twitter = require('twitter');
@@ -8,8 +7,7 @@ const Twitter = require('twitter');
 const setup = require('./puppeteer/setup');
 const lookupPlate = require('./lookupPlate.js');
 const crc = require('./crc.js');
-
-const SSM = new AWS.SSM();
+const getHighscore = require('./getHighscore.js');
 
 module.exports.test = middy(async (event, context) => {
   // For keeping the browser launch
@@ -210,12 +208,7 @@ module.exports.webhook = middy(async (event, context) => {
       }
     })
   );
-  const highScore = Number(
-    await SSM.getParameter({ Name: '/howsmydriving/high_score' })
-      .promise()
-      .catch(() => ({ Parameter: { Value: '0' } }))
-      .then(({ Parameter: { Value } }) => Value)
-  );
+  const highScore = await getHighscore();
   if (!result.error && result.total > highScore) {
     const highScoreStatus = {
       status: `🚨 @${
@@ -238,12 +231,6 @@ module.exports.webhook = middy(async (event, context) => {
         }
       })
     );
-    await SSM.putParameter({
-      Name: '/howsmydriving/high_score',
-      Type: 'String',
-      Value: result.total.toString(),
-      Overwrite: true
-    }).promise();
   }
 });
 module.exports.webhook.use(
