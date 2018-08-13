@@ -10,6 +10,7 @@ module.exports = async function() {
   let pages = 0;
   let max_id;
   while (pages < 10) {
+    // eslint-disable-next-line no-undef
     const ownTweets = await new Promise((resolve, reject) =>
       client.get(
         '/statuses/user_timeline.json',
