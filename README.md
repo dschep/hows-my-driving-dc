@@ -1,6 +1,7 @@
 # Hows My Driving DC Twitter Bot
 
-Uses pupeteer(for interacting with the DMV form) and tesseract.js(for solving the captcha) on lambda
+Uses pupeteer(for interacting with the DMV form) and tesseract.js(for solving the captcha) on lambda.
+Uses this form: https://prodpci.etimspayments.com/pbw/include/dc_parking/input.jsp
 
 ## Deploy
 ```
