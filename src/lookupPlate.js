@@ -41,7 +41,7 @@ module.exports = async (browser, state = 'DC', number = 'ey9285') => {
   console.log('submited form');
 
   const error = await page.evaluate(() => {
-    if (document.querySelector('.reg>table') === null) {
+    if (document.querySelector('[name=selectForm]') === null) {
       return (
         document.querySelector('.error') &&
         document.querySelector('.error').textContent
@@ -55,17 +55,37 @@ module.exports = async (browser, state = 'DC', number = 'ey9285') => {
   }
   console.log('checked errors');
 
-  const total = await page.evaluate(() =>
-    Number(
-      document.querySelector('input[name=totalAmount]').value.replace('$', '')
-    )
-  );
-
-  await screenshotDOMElement(page, {
-    path: '/tmp/tickets.png',
-    selector: '.reg>table',
-    padding: 4
+  const total = await page.evaluate(() => {
+    const totalInput = document.querySelector('input[name=totalAmount]');
+    if (totalInput) {
+      return totalInput.value.replace('$', '');
+    }
+    return Number(
+      document
+        .querySelector('[name=selectForm]')
+        .textContent.match(
+          /(The total of all your citations and fees is:|You have a total of \d+\sticket\(s\) on your account in the amount of) \$(\d+\.\d+)/
+        )[2]
+    );
   });
+
+  const regNode = await page.evaluate(
+    () => document.querySelector('.reg') !== null
+  );
+  if (regNode) {
+    await screenshotDOMElement(page, {
+      path: '/tmp/tickets.png',
+      selector: '.reg>table',
+      padding: 4
+    });
+  } else {
+    // more than I'd like, but the page DOM sucks
+    await screenshotDOMElement(page, {
+      path: '/tmp/tickets.png',
+      selector: '[name=selectForm]',
+      padding: 4
+    });
+  }
   console.log('screenshoted tickets!');
 
   return { path: '/tmp/tickets.png', total };
