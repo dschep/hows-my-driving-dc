@@ -160,6 +160,10 @@ module.exports.webhook = middy(async (event, context) => {
     status.status += result.error;
   }
   const { id_str } = await client.post('statuses/update', status);
+  if (state.toLowerCase() === 'md' && number.toLowerCase() === '2dh2148') {
+    console.log('no more high scores for MD:2DH2148');
+    return;
+  }
   const highScore = await getHighscore();
   if (!result.error && result.total > highScore) {
     const highScoreStatus = {
