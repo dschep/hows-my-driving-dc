@@ -152,14 +152,26 @@ module.exports.webhook = middy(async (event, context) => {
     status.status += `${state}:${number} has $${
       result.total
     } in outstanding tickets:`;
-    const { media_id_string } = await client.post('media/upload', {
-      media: data
-    });
+    let media_id_string;
+    try {
+      const mediaResp = await client.post('media/upload', {
+        media: data
+      });
+      media_id_string = mediaResp.media_id_string;
+    } catch (e) {
+      console.log(JSON.stringify(e));
+    }
     status.media_ids = media_id_string;
   } else if (result.error) {
     status.status += result.error;
   }
-  const { id_str } = await client.post('statuses/update', status);
+  let id_str;
+  try {
+    const statusResp = await client.post('statuses/update', status);
+    id_str = statusResp.id_str;
+  } catch (e) {
+    console.log(JSON.stringify(e));
+  }
   if (state.toLowerCase() === 'md' && number.toLowerCase() === '2dh2148') {
     console.log('no more high scores for MD:2DH2148');
     return;
