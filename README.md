@@ -14,6 +14,14 @@ Currently a proof of concept, waiting for twitter account activity webhook acces
 
 Bootstraped from https://github.com/sambaiz/puppeteer-lambda-starter-kit
 
+## Archiver
+There's a script for archiving the bot's history to a sqlite db. run it like this:
+```
+sls invoke local  -f archive
+```
+I've even checked in the sqlite db for other to peruse:
+https://github.com/dschep/hows-my-driving-dc/blob/master/archive.db
+
 ## Screenshot
 ![](./screenshot.png)
 
