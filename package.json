@@ -24,7 +24,8 @@
     "babel-preset-env": "^1.6.0",
     "eslint": "^4.6.1",
     "serverless-hooks-plugin": "^1.1.0",
-    "prettier": "*"
+    "prettier": "*",
+    "sqlite": "^3.0.0"
   },
   "eslintConfig": {
     "extends": "eslint:recommended",
