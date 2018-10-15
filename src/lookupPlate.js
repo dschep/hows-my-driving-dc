@@ -13,15 +13,19 @@ module.exports = async (browser, state = 'DC', number = 'ey9285') => {
 
   console.log('loaded');
 
-  // Enter license plate number
-  await page.type('[name=plateNumber]', number);
-  console.log('typed number');
+  try {
+    // Enter license plate number
+    await page.type('[name=plateNumber]', number);
+    console.log('typed number');
 
-  // Set state
-  await page.evaluate(state => {
-    document.querySelector('[name=statePlate]').value = state;
-  }, state);
-  console.log('set state');
+    // Set state
+    await page.evaluate(state => {
+      document.querySelector('[name=statePlate]').value = state;
+    }, state);
+    console.log('set state');
+  } catch (e) {
+    return {error: "error filling in form, maybe it's down? https://prodpci.etimspayments.com/pbw/include/dc_parking/input.jsp"};
+  }
 
   // solve the captcha >:D
   await screenshotDOMElement(page, {
