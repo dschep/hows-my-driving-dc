@@ -68,6 +68,7 @@ df = pd.read_sql("""with tweets_per_plate AS (SELECT
                     SELECT 
                     COUNT(DISTINCT CASE WHEN tweets > 1 THEN plate ELSE NULL END) AS repeat_plates,
                     COUNT(*) as total_plates,
+                    sum(tweets) as total_tweets,
                     1.0*COUNT(DISTINCT CASE WHEN tweets > 1 THEN plate ELSE NULL END) / COUNT(*) as perc_repeat_plates
                     FROM tweets_per_plate
                     """, con=con)
@@ -86,6 +87,29 @@ dmv_df = pd.read_sql("""SELECT
                     """, con=con)
 print(dmv_df)
 
+dmv_df = pd.read_sql("""SELECT
+                    COUNT(*) AS total_tweets,
+                    SUM(amount) AS total_citation_value
+                    FROM tweets
+                    WHERE state IS NOT NULL
+                    ;
+                    """, con=con)
+print(dmv_df)
+
+# Users
+user_df = pd.read_sql("""SELECT
+                    user,
+                    COUNT(*) AS total_tweets,
+                    SUM(amount) AS total_citation_value
+                    FROM tweets
+                    WHERE state IS NOT NULL
+                    GROUP by 1
+                    ORDER by 2 DESC
+                    LIMIT 10;
+                    """, con=con)
+print(user_df)
+
+
 # Tweets per day
 daily_df = pd.read_sql("""SELECT 
                     DATE(created_at) as date,
@@ -97,8 +121,9 @@ daily_df = pd.read_sql("""SELECT
 daily_df['date'] = pd.to_datetime(daily_df['date'])
 
 # Merge on day of WaPo Article
-dates = [date(2018,9,20)]
-events = [' WaPo article published']
+dates = [date(2018,9,20), date(2018, 10, 31)]
+events = [' WaPo article published',
+          ' ABC 7 story aired']
 
 # Define Dataframe of Mobike Events
 events_df = pd.DataFrame({'date': dates, 'event': events})
