@@ -9,3 +9,5 @@ pytesseract==0.2.5
 python-dateutil==2.7.5
 pytz==2018.7
 six==1.11.0
+python-twitter
+boto3
