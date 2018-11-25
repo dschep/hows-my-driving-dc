@@ -92,6 +92,8 @@ module.exports = async (browser, state = 'DC', number = 'ey9285') => {
   }
   console.log('screenshoted tickets!');
 
-  return { path: '/tmp/tickets.png', total };
+  const html = await page.evaluate(() => document.body.innerHTML);
+
+  return { path: '/tmp/tickets.png', total, html };
 };
 /* eslint-disable no-enable */
