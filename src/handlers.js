@@ -1,5 +1,6 @@
 const { readFileSync } = require('fs');
 
+const AWS = require('aws-sdk');
 const middy = require('middy');
 const { ssm, jsonBodyParser } = require('middy/middlewares');
 const Twitter = require('twitter');
@@ -8,6 +9,8 @@ const setup = require('./puppeteer/setup');
 const lookupPlate = require('./lookupPlate.js');
 const crc = require('./crc.js');
 const getHighscore = require('./getHighscore.js');
+
+const s3 = new AWS.S3();
 
 const PLATE_REGEX = /\b([a-zA-Z]{2}):([a-zA-Z0-9]+)\b/;
 
@@ -178,6 +181,11 @@ module.exports.webhook = middy(async (event, context) => {
   } catch (e) {
     console.log(JSON.stringify(e));
   }
+  await s3.putObject({
+    Bucket: process.env.BUCKET,
+    Key: `${id_str}.html`,
+    Body: result.html,
+  }).promise();
   if (state.toLowerCase() === 'md' && number.toLowerCase() === '2dh2148') {
     console.log('no more high scores for MD:2DH2148');
     return;

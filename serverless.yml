@@ -5,6 +5,8 @@ provider:
   runtime: nodejs6.10
   memorySize: 1536
   timeout: 180
+  environment:
+    BUCKET: ${self:custom.bucket}
 
   iamRoleStatements:
     - Effect: Allow
@@ -13,6 +15,10 @@ provider:
     - Effect: Allow
       Action: kms:Decrypt
       Resource: arn:aws:kms:us-east-1:704903784842:key/11b9fec1-3ab3-42d4-87f7-25b78c45ea10
+    - Effect: Allow
+      Action:
+        - s3:PutObject
+      Resource: "arn:aws:s3:::${self:custom.bucket}/*"
 
 functions:
   test:
@@ -48,3 +54,10 @@ custom:
   hooks:
     package:initialize:
       - npm run package
+  bucket: hows-my-driving-dc-html
+resources:
+  Resources:
+    AttachmentsBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.bucket}
