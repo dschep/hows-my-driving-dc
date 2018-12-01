@@ -36,6 +36,8 @@ tweet_df = pd.read_sql("""SELECT
                            * 
                           FROM tweets
                           WHERE amount > 0
+                          AND  ((number NOT IN ('NOTAGS', 'notag', 'na')) OR
+                          number is NULL)
                           ORDER BY created_at;
                         """, con=con)
 # Pull All Tickets

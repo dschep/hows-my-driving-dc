@@ -39,7 +39,9 @@ df = pd.read_sql("""SELECT
                     SUM(amount) as total_citation_value,
                     COUNT(DISTINCT user) as unique_twitter_users,
                     COUNT(DISTINCT state||number) as unique_plates
-                    FROM tweets;
+                    FROM tweets
+                    WHERE (number NOT IN ('NOTAGS', 'notag', 'na')) OR
+                          number is NULL;
                     """, con=con)
 print(df)
 
@@ -102,12 +104,14 @@ user_df = pd.read_sql("""SELECT
                     COUNT(*) AS total_tweets,
                     SUM(amount) AS total_citation_value
                     FROM tweets
-                    WHERE state IS NOT NULL
+                    WHERE (state IS NOT NULL)
+                    AND ((number NOT IN ('NOTAGS', 'notag', 'na')) OR
+                          number is NULL)
                     GROUP by 1
-                    ORDER by 2 DESC
-                    LIMIT 10;
+                    ORDER by 3 DESC
+                    LIMIT 13;
                     """, con=con)
-print(user_df)
+user_df.to_csv("output/top_users.csv")
 
 
 # Tweets per day
