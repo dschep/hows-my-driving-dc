@@ -26,7 +26,10 @@ module.exports = async (browser, state = 'DC', number = 'ey9285') => {
     }, state);
     console.log('set state');
   } catch (e) {
-    return {error: "error filling in form, maybe it's down? https://prodpci.etimspayments.com/pbw/include/dc_parking/input.jsp cc @schep_"};
+    return {
+      error:
+        "error filling in form, maybe it's down? https://prodpci.etimspayments.com/pbw/include/dc_parking/input.jsp cc @schep_"
+    };
   }
 
   // solve the captcha >:D

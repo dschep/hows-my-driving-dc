@@ -182,11 +182,13 @@ module.exports.webhook = middy(async (event, context) => {
   } catch (e) {
     console.log(JSON.stringify(e));
   }
-  await s3.putObject({
-    Bucket: process.env.BUCKET,
-    Key: `${id_str}.html`,
-    Body: result.html,
-  }).promise();
+  await s3
+    .putObject({
+      Bucket: process.env.BUCKET,
+      Key: `${id_str}.html`,
+      Body: result.html
+    })
+    .promise();
   if (state.toLowerCase() === 'md' && number.toLowerCase() === '2dh2148') {
     console.log('no more high scores for MD:2DH2148');
     return;
@@ -246,7 +248,8 @@ module.exports.archive = middy(async () => {
 
   let { since_id } = await db.get('SELECT max(tweet_id) since_id FROM tweets');
   let max_id;
-  while (true) { // eslint-disable-line no-constant-condition
+  while (true) {
+    // eslint-disable-line no-constant-condition
     const ownTweets = await client.get('/statuses/user_timeline.json', {
       screen_name: 'howsmydrivingdc',
       count: 200,

@@ -2,7 +2,7 @@ service: hows-my-driving-dc
 
 provider:
   name: aws
-  runtime: nodejs6.10
+  runtime: nodejs8.10
   memorySize: 1536
   timeout: 180
   environment:
@@ -22,39 +22,47 @@ provider:
 
 functions:
   test:
-    handler: handlers.test
+    handler: src/handlers.test
     environment:
       DEBUG: 0
   register:
-    handler: handlers.register
+    handler: src/handlers.register
   subscribe:
-    handler: handlers.subscribe
+    handler: src/handlers.subscribe
   crc:
-    handler: handlers.crc
+    handler: src/handlers.crc
     events:
       - http:
           path: webhook.json
           method: get
   webhook:
-    handler: handlers.webhook
+    handler: src/handlers.webhook
     events:
       - http:
           path: webhook.json
           method: post
+    layers:
+      - ${cf:serverless-puppeteer-layers-${opt:stage, self:provider.stage}.ChromeLambdaLayerExport}
   archive:
     handler: src/handlers.archive
 
 package:
-  artifact: ./package.zip
-  
+  exclude:
+    - '**/*'
+  include:
+    - 'src/**/*.js'
+    - 'eng.traineddata'
+    - 'node_modules/**'
+
 plugins:
   - serverless-hooks-plugin
 
 custom:
+  bucket: hows-my-driving-dc-html
   hooks:
     package:initialize:
-      - npm run package
-  bucket: hows-my-driving-dc-html
+      - rm -rf node_modules/puppeteer/.local-chromium/
+
 resources:
   Resources:
     AttachmentsBucket:
