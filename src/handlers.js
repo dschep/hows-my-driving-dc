@@ -12,7 +12,7 @@ const getHighscore = require('./getHighscore.js');
 
 const s3 = new AWS.S3();
 
-const PLATE_REGEX = /\b([a-zA-Z]{2}):([a-zA-Z0-9]+)\b/;
+const PLATE_REGEX = /\b([a-zA-Z]{2}):\s*([a-zA-Z0-9]+)\b/;
 
 module.exports.test = middy(async (event, context) => {
   // For keeping the browser launch
