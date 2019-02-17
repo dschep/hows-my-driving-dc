@@ -4,7 +4,9 @@ const Tesseract = require('tesseract.js');
 const screenshotDOMElement = require('./screenshotDOMElement.js');
 
 module.exports = async (browser, state = 'DC', number = 'ey9285') => {
+  console.log('lookup Plate');
   const page = await browser.newPage();
+  console.log('browser page created');
   await page.setViewport({ height: 768, width: 1024 });
   await page.goto(
     'https://prodpci.etimspayments.com/pbw/include/dc_parking/input.jsp',
