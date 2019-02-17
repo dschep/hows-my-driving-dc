@@ -143,6 +143,7 @@ module.exports.webhook = middy(async (event, context) => {
     console.log(e);
     return;
   }
+  console.log(state, number);
   let result;
   for (let i = 0; i < 5; i++) {
     result = await lookupPlate(browser, state.toUpperCase(), number);
