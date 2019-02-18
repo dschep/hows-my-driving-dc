@@ -14,9 +14,10 @@
     "twitter": "^1.7.1"
   },
   "devDependencies": {
+    "@serverless/enterprise-plugin": "^0.2.0",
     "eslint": "^4.6.1",
-    "serverless-hooks-plugin": "^1.1.0",
     "prettier": "*",
+    "serverless-hooks-plugin": "^1.1.0",
     "sqlite": "^3.0.0"
   },
   "eslintConfig": {

@@ -1,7 +1,10 @@
 service: hows-my-driving-dc
+tenant: personal
+app: hows-my-driving-dc
 
 provider:
   name: aws
+  credentials: ${secrets:aws-creds}
   runtime: nodejs8.10
   memorySize: 1536
   timeout: 180
@@ -56,6 +59,7 @@ package:
 
 plugins:
   - serverless-hooks-plugin
+  - '@serverless/enterprise-plugin'
 
 custom:
   bucket: hows-my-driving-dc-html
