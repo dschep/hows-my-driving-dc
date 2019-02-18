@@ -18,5 +18,5 @@ action "Deploy with Serverless" {
   uses = "serverless/github-action@master"
   args = "deploy"
   needs = ["Install dependencies"]
-  secrets = ["AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"]
+  secrets = ["SERVERLESS_ACCESS_KEY"]
 }
