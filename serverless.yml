@@ -53,6 +53,7 @@ package:
   exclude:
     - '**/*'
   include:
+    - 's-*.js' # sls enterprise wrapper
     - 'src/**/*.js'
     - 'eng.traineddata'
     - 'node_modules/**'
