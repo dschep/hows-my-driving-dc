@@ -28,7 +28,9 @@ provider:
       Resource: arn:aws:sdb:us-east-1:704903784842:domain/*
     - Effect: Allow
       Action:
-        - sdb:ListDomains
+        - sdb:GetAttributes
+        - sdb:PutAttributes
+        - sdb:CreateDomain
       Resource: arn:aws:sdb:us-east-1:704903784842:domain/howsmydrivingdc
 
 functions:
