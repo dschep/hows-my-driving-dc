@@ -193,8 +193,11 @@ module.exports.webhook = middy(async (event, context) => {
     console.log('no more high scores for MD:2DH2148');
     return;
   }
-  const highScore = await getHighscore();
-  if (!result.error && result.total > highScore) {
+  if (result.error) {
+    return;
+  }
+  const highScore = await getHighscore(result.total);
+  if (result.total > highScore) {
     const highScoreStatus = {
       status: `🚨 @${
         event.body.tweet_create_events[0].user.screen_name

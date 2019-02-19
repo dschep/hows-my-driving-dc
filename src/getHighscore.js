@@ -1,29 +1,37 @@
-const Twitter = require('twitter');
+const AWS = require('aws-sdk');
 
-module.exports = async function() {
-  const client = new Twitter({
-    consumer_key: process.env.CONSUMER_KEY,
-    consumer_secret: process.env.CONSUMER_SECRET,
-    access_token_key: process.env.ACCESS_TOKEN,
-    access_token_secret: process.env.ACCESS_TOKEN_SECRET
-  });
-  let pages = 0;
-  let max_id;
-  while (pages < 10) {
-    // eslint-disable-next-line no-undef
-    const ownTweets = await client.get('/statuses/user_timeline.json', {
-      screen_name: 'howsmydrivingdc',
-      count: 200,
-      max_id
-    });
-    for (const { text, id_str } of ownTweets) {
-      const match = text.match(
-        /set a new high score with [a-zA-Z]{2}:[a-zA-Z0-9]+: \$(\d+) in unpaid tickets/
-      );
-      if (match) return Number(match[1]);
-      else max_id = id_str;
-    }
-    pages++;
+const defaultHighScore = 16198; // https://twitter.com/HowsMyDrivingDC/status/1091565303333572609
+
+module.exports = async function(newScore) {
+  const simpledb = new AWS.SimpleDB({ });
+
+  // Create domain if it doesn't exist yet
+  const { DomainNames } = await simpledb.listDomains().promise();
+  if (!(DomainNames || []).includes('howsmydrivingdc')) {
+    await simpledb.createDomains({DomainName:'howsmydrivingdc'}).promise();
   }
-  throw Error("couldn't find a high score with in 10 pages of own tweets");
+
+  // get current highscore
+  let highScore = defaultHighScore;
+  try {
+    const { Attributes: [ { Value } ] } = await simpledb.getAttributes({
+      AttributeNames: ['high-score'],
+      DomainName: 'howsmydrivingdc',
+      'ItemName': 'high-score'
+    }).promise()
+    highScore = Value ? parseInt(Value) : defaultHighScore;
+  } catch (err) {
+    console.error('error fetching high score, usign default', err)
+  }
+
+  // save new high score if greater
+  if (newScore > highScore) {
+    await simpledb.putAttributes({
+      Attributes:[ {Name:'high-score', Value: newScore.toString(), Replace: true} ],
+      DomainName: 'howsmydrivingdc',
+      ItemName: 'high-score'
+    })
+  }
+
+  return highScore;
 };

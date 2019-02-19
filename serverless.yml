@@ -22,6 +22,14 @@ provider:
       Action:
         - s3:PutObject
       Resource: "arn:aws:s3:::${self:custom.bucket}/*"
+    - Effect: Allow
+      Action:
+        - sdb:ListDomains
+      Resource: arn:aws:sdb:us-east-1:704903784842:domain/*
+    - Effect: Allow
+      Action:
+        - sdb:ListDomains
+      Resource: arn:aws:sdb:us-east-1:704903784842:domain/howsmydrivingdc
 
 functions:
   test:
