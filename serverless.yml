@@ -63,6 +63,8 @@ package:
   exclude:
     - '**/*'
   include:
+    - 'serverless-sdk/**' # sls enterprise wrapper
+    - 's-*.js' # sls enterprise wrapper
     - 'src/**/*.js'
     - 'eng.traineddata'
     - 'node_modules/**'

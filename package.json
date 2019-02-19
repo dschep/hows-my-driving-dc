@@ -14,7 +14,7 @@
     "twitter": "^1.7.1"
   },
   "devDependencies": {
-    "@serverless/enterprise-plugin": "0.2.0-4-g81adef3",
+    "@serverless/enterprise-plugin": "^0.2.0",
     "eslint": "^4.6.1",
     "prettier": "*",
     "serverless-hooks-plugin": "^1.1.0",
