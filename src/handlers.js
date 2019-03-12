@@ -173,7 +173,7 @@ module.exports.webhook = middy(async (event, context) => {
     }
     status.media_ids = media_id_string;
   } else if (result.error) {
-    status.status += result.error;
+    status.status += `Result for ${state}:${number} - ${result.error}`;
   }
   let id_str;
   try {
