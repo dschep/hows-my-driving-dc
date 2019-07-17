@@ -30,7 +30,7 @@ module.exports = async function(newScore) {
       Attributes:[ {Name:'high-score', Value: newScore.toString(), Replace: true} ],
       DomainName: 'howsmydrivingdc',
       ItemName: 'high-score'
-    })
+    }).promise()
   }
 
   return highScore;
