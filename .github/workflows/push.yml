@@ -1,0 +1,22 @@
+on: push
+name: Deploy master branch
+jobs:
+  onlyOnMasterBranch:
+    name: Only on master branch
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Only on master branch
+      uses: actions/bin/filter@b2bea07
+      with:
+        args: branch master
+    - name: Install dependencies
+      uses: actions/npm@59b64a598378f31e49cb76f27d6f3312b582f680
+      with:
+        args: install
+    - name: Deploy with Serverless
+      uses: serverless/github-action@master
+      env:
+        SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
+      with:
+        args: deploy
