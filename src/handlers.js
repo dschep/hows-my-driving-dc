@@ -103,111 +103,115 @@ module.exports.webhook = middy(async (event, context) => {
   console.log(event);
   context.callbackWaitsForEmptyEventLoop = false;
   const browser = await setup.getBrowser();
-  const client = new Twitter({
-    consumer_key: process.env.CONSUMER_KEY,
-    consumer_secret: process.env.CONSUMER_SECRET,
-    access_token_key: process.env.ACCESS_TOKEN,
-    access_token_secret: process.env.ACCESS_TOKEN_SECRET
-  });
-  if (!event.body.tweet_create_events) {
-    return;
-  }
-  console.log(event.body.tweet_create_events);
-  if (
-    event.body.tweet_create_events[0].user.screen_name.toLowerCase() ===
-    'howsmydrivingdc'
-  ) {
-    console.log('ignore own tweet');
-    return;
-  }
-  if (event.body.tweet_create_events[0].retweeted_status) {
-    console.log('ignore retweeted status');
-    return;
-  }
-  if (
-    event.body.tweet_create_events[0].is_quote_status &&
-    !event.body.tweet_create_events[0].text.includes(
-      event.body.tweet_create_events[0].quoted_status.text
-    )
-  ) {
-    console.log('ignore quote tweet');
-    return;
-  }
-  let state, number;
   try {
-    const text = event.body.tweet_create_events[0].truncated
-      ? event.body.tweet_create_events[0].extended_tweet.full_text
-      : event.body.tweet_create_events[0].text;
-    [, state, number] = text.match(PLATE_REGEX);
-  } catch (e) {
-    console.log(e);
-    return;
-  }
-  console.log(state, number);
-  let result;
-  for (let i = 0; i < 5; i++) {
-    result = await lookupPlate(browser, state.toUpperCase(), number);
-    if (result.error !== 'captcha error') {
-      break;
+    const client = new Twitter({
+      consumer_key: process.env.CONSUMER_KEY,
+      consumer_secret: process.env.CONSUMER_SECRET,
+      access_token_key: process.env.ACCESS_TOKEN,
+      access_token_secret: process.env.ACCESS_TOKEN_SECRET
+    });
+    if (!event.body.tweet_create_events) {
+      return;
     }
-  }
-  console.log('lets tweet!');
-  const status = {
-    in_reply_to_status_id: event.body.tweet_create_events[0].id_str,
-    status: `@${event.body.tweet_create_events[0].user.screen_name} `
-  };
-  if (result.path) {
-    const data = readFileSync(result.path);
-    console.log('loaded image');
-    status.status += `${state}:${number} has $${
-      result.total
-    } in outstanding tickets:`;
-    let media_id_string;
+    console.log(event.body.tweet_create_events);
+    if (
+      event.body.tweet_create_events[0].user.screen_name.toLowerCase() ===
+      'howsmydrivingdc'
+    ) {
+      console.log('ignore own tweet');
+      return;
+    }
+    if (event.body.tweet_create_events[0].retweeted_status) {
+      console.log('ignore retweeted status');
+      return;
+    }
+    if (
+      event.body.tweet_create_events[0].is_quote_status &&
+      !event.body.tweet_create_events[0].text.includes(
+        event.body.tweet_create_events[0].quoted_status.text
+      )
+    ) {
+      console.log('ignore quote tweet');
+      return;
+    }
+    let state, number;
     try {
-      const mediaResp = await client.post('media/upload', {
-        media: data
-      });
-      media_id_string = mediaResp.media_id_string;
+      const text = event.body.tweet_create_events[0].truncated
+        ? event.body.tweet_create_events[0].extended_tweet.full_text
+        : event.body.tweet_create_events[0].text;
+      [, state, number] = text.match(PLATE_REGEX);
+    } catch (e) {
+      console.log(e);
+      return;
+    }
+    console.log(state, number);
+    let result;
+    for (let i = 0; i < 5; i++) {
+      result = await lookupPlate(browser, state.toUpperCase(), number);
+      if (result.error !== 'captcha error') {
+        break;
+      }
+    }
+    console.log('lets tweet!');
+    const status = {
+      in_reply_to_status_id: event.body.tweet_create_events[0].id_str,
+      status: `@${event.body.tweet_create_events[0].user.screen_name} `
+    };
+    if (result.path) {
+      const data = readFileSync(result.path);
+      console.log('loaded image');
+      status.status += `${state}:${number} has $${
+        result.total
+      } in outstanding tickets:`;
+      let media_id_string;
+      try {
+        const mediaResp = await client.post('media/upload', {
+          media: data
+        });
+        media_id_string = mediaResp.media_id_string;
+      } catch (e) {
+        console.log(JSON.stringify(e));
+      }
+      status.media_ids = media_id_string;
+    } else if (result.error) {
+      status.status += `Result for ${state}:${number} - ${result.error}`;
+    }
+    let id_str;
+    try {
+      const statusResp = await client.post('statuses/update', status);
+      id_str = statusResp.id_str;
     } catch (e) {
       console.log(JSON.stringify(e));
     }
-    status.media_ids = media_id_string;
-  } else if (result.error) {
-    status.status += `Result for ${state}:${number} - ${result.error}`;
-  }
-  let id_str;
-  try {
-    const statusResp = await client.post('statuses/update', status);
-    id_str = statusResp.id_str;
-  } catch (e) {
-    console.log(JSON.stringify(e));
-  }
-  await s3
-    .putObject({
-      Bucket: process.env.BUCKET,
-      Key: `${id_str}.html`,
-      Body: result.html
-    })
-    .promise();
-  if (state.toLowerCase() === 'md' && number.toLowerCase() === '2dh2148') {
-    console.log('no more high scores for MD:2DH2148');
-    return;
-  }
-  if (result.error) {
-    return;
-  }
-  const highScore = await getHighscore(result.total);
-  if (result.total > highScore) {
-    const highScoreStatus = {
-      status: `🚨 @${
-        event.body.tweet_create_events[0].user.screen_name
-      } set a new high score with ${state}:${number}: $${
-        result.total
-      } in unpaid tickets! 🚨
+    await s3
+      .putObject({
+        Bucket: process.env.BUCKET,
+        Key: `${id_str}.html`,
+        Body: result.html
+      })
+      .promise();
+    if (state.toLowerCase() === 'md' && number.toLowerCase() === '2dh2148') {
+      console.log('no more high scores for MD:2DH2148');
+      return;
+    }
+    if (result.error) {
+      return;
+    }
+    const highScore = await getHighscore(result.total);
+    if (result.total > highScore) {
+      const highScoreStatus = {
+        status: `🚨 @${
+          event.body.tweet_create_events[0].user.screen_name
+        } set a new high score with ${state}:${number}: $${
+          result.total
+        } in unpaid tickets! 🚨
 
-      https://twitter.com/HowsMyDrivingDC/status/${id_str}`
-    };
-    await client.post('statuses/update', highScoreStatus);
+        https://twitter.com/HowsMyDrivingDC/status/${id_str}`
+      };
+      await client.post('statuses/update', highScoreStatus);
+    }
+  } finally {
+    await browser.close()
   }
 });
 module.exports.webhook.use(
