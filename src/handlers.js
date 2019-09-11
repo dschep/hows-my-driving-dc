@@ -207,7 +207,7 @@ module.exports.webhook = middy(async (event, context) => {
 
         https://twitter.com/HowsMyDrivingDC/status/${id_str}`
       };
-      await client.post('statuses/update', highScoreStatus);
+      // await client.post('statuses/update', highScoreStatus);
     }
   } finally {
     await browser.close()
