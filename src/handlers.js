@@ -101,6 +101,7 @@ module.exports.subscribe.use(
 
 module.exports.webhook = middy(async (event, context) => {
   console.log(event);
+  context.callbackWaitsForEmptyEventLoop = false;
   const browser = await setup.getBrowser();
   try {
     const client = new Twitter({
