@@ -112,7 +112,7 @@ module.exports.webhook = middy(async (event, context) => {
     access_token_secret: process.env.ACCESS_TOKEN_SECRET
   });
   if (!event.body.tweet_create_events) {
-    return;
+    return {statusCode: 200};
   }
   console.log(event.body.tweet_create_events);
   if (
@@ -120,11 +120,11 @@ module.exports.webhook = middy(async (event, context) => {
     'howsmydrivingdc'
   ) {
     console.log('ignore own tweet');
-    return;
+    return {statusCode: 200};
   }
   if (event.body.tweet_create_events[0].retweeted_status) {
     console.log('ignore retweeted status');
-    return;
+    return {statusCode: 200};
   }
   if (
     event.body.tweet_create_events[0].is_quote_status &&
@@ -133,7 +133,7 @@ module.exports.webhook = middy(async (event, context) => {
     )
   ) {
     console.log('ignore quote tweet');
-    return;
+    return {statusCode: 200};
   }
   let state, number;
   try {
@@ -143,7 +143,7 @@ module.exports.webhook = middy(async (event, context) => {
     [, state, number] = text.match(PLATE_REGEX);
   } catch (e) {
     console.log(e);
-    return;
+    return {statusCode: 500};
   }
   console.log(state, number);
   let result;
@@ -193,10 +193,10 @@ module.exports.webhook = middy(async (event, context) => {
     .promise();
   if (state.toLowerCase() === 'md' && number.toLowerCase() === '2dh2148') {
     console.log('no more high scores for MD:2DH2148');
-    return;
+    return {statusCode: 200};
   }
   if (result.error) {
-    return;
+    return {statusCode: 500};
   }
   const highScore = await getHighscore(result.total);
   if (result.total > highScore) {
@@ -211,6 +211,7 @@ module.exports.webhook = middy(async (event, context) => {
     };
     // await client.post('statuses/update', highScoreStatus);
   }
+  return {statusCode: 200};
 });
 module.exports.webhook.use(
   ssm({
