@@ -28,7 +28,7 @@ module.exports = async (browser, state = 'DC', number = 'ey9285') => {
   } catch (e) {
     return {
       error:
-        "error filling in form, maybe it's down? https://prodpci.etimspayments.com/pbw/include/dc_parking/input.jsp cc @schep_"
+        "I'm broken. Look it up yourself: https://prodpci.etimspayments.com/pbw/include/dc_parking/input.jsp"
     };
   }
 
