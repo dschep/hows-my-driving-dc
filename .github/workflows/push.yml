@@ -11,6 +11,7 @@ jobs:
     - uses: actions/checkout@v2
     - uses: actions/setup-node@v1
     - run: npm i
-    - run: npx sls deploy
+    - run: npm i -g serverless
+    - run: sls deploy
       env:
         SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
