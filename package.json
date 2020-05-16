@@ -9,7 +9,7 @@
   "dependencies": {
     "middy": "^0.15.10",
     "puppeteer": "^1.1.1",
-    "tesseract.js": "^1.0.10",
+    "tesseract.js": "^1.0.19",
     "aws-sdk": "^2.111.0",
     "twitter": "^1.7.1"
   },
