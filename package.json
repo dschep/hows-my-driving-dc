@@ -10,7 +10,7 @@
     "middy": "^0.15.10",
     "puppeteer": "^1.1.1",
     "tesseract.js": "^1.0.10",
-    "aws-sdk": "^2.111.0",
+    "aws-sdk": "^2.814.0",
     "twitter": "^1.7.1"
   },
   "devDependencies": {
